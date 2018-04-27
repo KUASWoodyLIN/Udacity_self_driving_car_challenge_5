@@ -1,0 +1,13 @@
+__pycache__/
+image_processing/__pycache__/
+
+data/non-vehicles
+data/vehicles
+
+data/udacity-annotations-autti/
+
+data/object-detection-crowdai.tar.gz
+data/object-detection-crowdai/
+
+data/object-dataset.tar.gz
+data/object-dataset
