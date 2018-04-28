@@ -11,3 +11,6 @@ data/object-detection-crowdai/
 
 data/object-dataset.tar.gz
 data/object-dataset
+
+yolo.weights
+weights_car.h5

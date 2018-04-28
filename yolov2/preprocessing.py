@@ -6,7 +6,7 @@ import imgaug as ia
 from imgaug import augmenters as iaa
 from keras.utils import Sequence
 import xml.etree.ElementTree as ET
-from utils import BoundBox, normalize, bbox_iou
+from yolov2.utils import BoundBox, normalize, bbox_iou
 
 def parse_annotation(ann_dir, img_dir, labels=[]):
     """解析PASCAL VOC格式的圖像標註檔
@@ -113,21 +113,26 @@ def udacity_annotation(dir):
         spamreader = csv.DictReader(csvfile)
         for row in spamreader:
             if row['Frame'] in files.keys():
-                files[row['Frame']] += [{'name': row['Label'], 'xmin': row['xmin'], 'ymin': row['ymin'],
-                                         'xmax': row['xmax'], 'ymax': row['ymax']}]
+                files[row['Frame']] += [{'name': row['Label'], 'xmin': int(row['xmax']), 'ymin': int(row['ymax']),
+                                         'xmax': int(row['xmin']), 'ymax': int(row['ymin'])}]
             else:
-                files[row['Frame']] = [{'name': row['Label'], 'xmin': row['xmin'], 'ymin': row['ymin'],
-                                        'xmax': row['xmax'], 'ymax': row['ymax']}]
+                files[row['Frame']] = [{'name': row['Label'], 'xmin': int(row['xmax']), 'ymin': int(row['ymax']),
+                                        'xmax': int(row['xmin']), 'ymax': int(row['ymin'])}]
             if row['Label'] in seen_labels.keys():
                 seen_labels[row['Label']] += 1
             else:
-                seen_labels[row['Label']] = 0
+                seen_labels[row['Label']] = 1
 
     for filename in files.keys():
-        all_imgs += {'filename': os.path.join(dir, filename),
-                     'width': 1920,
-                     'height': 1200,
-                     'object': files[filename]}
+        all_imgs.append({'filename': os.path.join(dir, filename),
+                         'width': 1920,
+                         'height': 1200,
+                         'object': files[filename]})
+
+    print("Parsing annotation completed!")
+    print("Total: {} images processed.".format(len(all_imgs)))
+    print("Labels: {}.".format(len(seen_labels)))
+
     return all_imgs, seen_labels
 
 

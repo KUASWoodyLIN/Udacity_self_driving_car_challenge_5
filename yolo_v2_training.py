@@ -7,6 +7,11 @@ from glob import glob
 # 圖像處理相關函式庫
 import cv2
 import numpy as np
+
+# 讓Keras只使用GPU來進行訓練
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+
 import colorsys
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
@@ -24,10 +29,9 @@ from keras.utils import plot_model
 import tensorflow as tf
 
 # 專案相關函式庫
-from Udacity_self_driving_car_challenge_5.yolov2.preprocessing import udacity_annotation, BatchGenerator
-from Udacity_self_driving_car_challenge_5.yolov2.utils import WeightReader, decode_netout, draw_boxes, normalize
-from Udacity_self_driving_car_challenge_5.yolov2.utils import draw_bgr_image_boxes, draw_rgb_image_boxes, \
-    draw_pil_image_boxes
+from yolov2.preprocessing import udacity_annotation, BatchGenerator
+from yolov2.utils import WeightReader, decode_netout, draw_boxes, normalize
+from yolov2.utils import draw_bgr_image_boxes, draw_rgb_image_boxes, draw_pil_image_boxes
 
 ROOT_PATH = os.getcwd()
 DATA_PATH = os.path.join(ROOT_PATH, "data")
@@ -36,7 +40,7 @@ IMAGES_TEST = os.path.join(ROOT_PATH, "test_images")
 UDACITY_DATASET = os.path.join(DATA_PATH, "object-detection-crowdai")
 
 # 圖像類別的Label-encoding
-map_classes = {0: 'car'}
+map_classes = {0: 'Car', 1: 'Truck', 2: 'Pedestrian'}
 
 # 取得所有圖像的圖像類別列表
 labels = list(map_classes.values())
@@ -265,6 +269,7 @@ def yolov2_load_weight(model):
             kernel = kernel.transpose([2, 3, 1, 0])
             conv_layer.set_weights([kernel])
             print("handle conv_" + str(i) + " completed")
+    return model
 
 
 def custom_loss(y_true, y_pred):
@@ -423,7 +428,6 @@ def custom_loss(y_true, y_pred):
 
     return loss
 
-
 # 產生一個Dummy的標籤輸入
 # 在訓練階段放的是真實的邊界框與圖像類別訊息
 # 但在預測階段還是需要有一個Dummy的輸入, 因為定義在網絡的結構中有兩個輸入：
@@ -432,19 +436,19 @@ def custom_loss(y_true, y_pred):
 dummy_array = np.zeros((1, 1, 1, 1, TRUE_BOX_BUFFER, 4))
 
 
-def testing(image, color_space='bgr'):
+def testing(img, color_space='bgr'):
     if color_space == 'rgb':
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
     plt.figure(figsize=(10, 10))
 
     # 進行圖像輸入的前處理
-    input_image = cv2.resize(image, (IMAGE_H, IMAGE_W))  # 修改輸入圖像大小來符合模型的要求
-    input_image = input_image / 255.  # 進行圖像歸一處理
-    input_image = np.expand_dims(input_image, 0)  # 增加 batch dimension
+    input_img = cv2.resize(img, (IMAGE_H, IMAGE_W))  # 修改輸入圖像大小來符合模型的要求
+    input_img = input_img / 255.  # 進行圖像歸一處理
+    input_img = np.expand_dims(input_img, 0)  # 增加 batch dimension
 
     # 進行圖像偵測
-    netout = model.predict([input_image, dummy_array])
+    netout = model.predict([input_img, dummy_array])
 
     # 解析網絡的輸出來取得最後偵測出來的邊界框(bounding boxes)列表
     boxes = decode_netout(netout[0],
@@ -461,8 +465,8 @@ def testing(image, color_space='bgr'):
     #       boxes 是偵測的結果
     #       labels 是模型訓練的圖像類別列表
     # 回傳： image 是image的numpy ndarray [h, w, channels(RGB)]
-    image = draw_bgr_image_boxes(image, boxes, labels=LABELS)
-    return image
+    img = draw_bgr_image_boxes(img, boxes, labels=LABELS)
+    return img
 
 
 if __name__ == "__main__":
@@ -474,7 +478,7 @@ if __name__ == "__main__":
         plot_model(model, to_file='yolov2_graph.png')
 
         # Step 2.載入預訓練的模型權重
-        yolov2_load_weight(model)
+        model = yolov2_load_weight(model)
 
         # Step 3.設定要微調(fine-tune)的模型層級權重
         layer = model.layers[-4]  # 找出最後一層的卷積層
@@ -520,7 +524,7 @@ if __name__ == "__main__":
 
         history = model.fit_generator(generator=train_batch,
                                       steps_per_epoch=len(train_batch),
-                                      epochs=200,  # 進行200個訓練循環
+                                      epochs=100,  # 進行100個訓練循環
                                       verbose=0,
                                       validation_data=valid_batch,
                                       validation_steps=len(valid_batch),
