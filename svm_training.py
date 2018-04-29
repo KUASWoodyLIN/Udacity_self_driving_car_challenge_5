@@ -118,9 +118,10 @@ if __name__ == "__main__":
     # PATH definition
     ROOT_PATH = os.getcwd()
     DATA_PATH = os.path.join(ROOT_PATH, 'data')
+    MODEL_PATH = os.path.join(ROOT_PATH, 'model')
     VEHICLES = os.path.join(DATA_PATH, 'vehicles')
     NON_VEHICLES = os.path.join(DATA_PATH, 'non-vehicles')
-    SVC_PICKLE_FILE = os.path.join(DATA_PATH, 'svc_pickle.p')
+    SVC_PICKLE_FILE = os.path.join(MODEL_PATH, 'svc_pickle.p')
     IMAGES_TEST = os.path.join(ROOT_PATH, 'test_images')
     IMAGES_OUTPUT = os.path.join(ROOT_PATH, 'output_images')
 

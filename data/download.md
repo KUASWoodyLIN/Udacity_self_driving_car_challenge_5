@@ -15,3 +15,24 @@ rm vehicles.zip non-vehicles.zip
 
 如果要增加訓練資料可以由Udacity最新的資料集中下載更多影像。
 Link: [Udacity labeled dataset](https://github.com/udacity/self-driving-car/tree/master/annotations) 
+
+
+
+### Dataset 1
+
+```shell
+wget http://bit.ly/udacity-annoations-crowdai
+mv udacity-annotations-autti object-detection-crowdai.tar.gz
+tar xvf object-detection-crowdai.tar.gz
+```
+
+
+
+### Dataset 2
+
+```shell
+wget http://bit.ly/udacity-annotations-autti
+wget http://bit.ly/udacity-annoations-crowdai object-dataset.tar.gz
+tar zxvf object-dataset.tar.gz
+```
+

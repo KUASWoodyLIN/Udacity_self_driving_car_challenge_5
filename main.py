@@ -22,8 +22,8 @@ VIDEO_OUTPUT_DIR = os.path.join(ROOT_PATH, 'output_video')
 IMAGE_PROCESSING_PATH = os.path.join(ROOT_PATH, 'image_processing')
 WIDE_DIST_FILE = os.path.join(IMAGE_PROCESSING_PATH, 'wide_dist_pickle.p')
 IMAGES_PATH = glob(IMAGE_TEST_DIR + '/*.jpg')
-DATA_PATH = os.path.join(ROOT_PATH, 'data')
-SVC_PICKLE_FILE = os.path.join(DATA_PATH, 'svc_pickle.p')
+MODEL_PATH = os.path.join(ROOT_PATH, 'model')
+SVC_PICKLE_FILE = os.path.join(MODEL_PATH, 'svc_pickle.p')
 
 
 # Load cameraMatrix and distCoeffs parameter

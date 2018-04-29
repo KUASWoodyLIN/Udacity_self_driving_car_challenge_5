@@ -238,7 +238,7 @@ def test_images():
 if __name__ == "__main__":
     # PATH definition
     ROOT_PATH = os.path.split(os.getcwd())[0]
-    DATA_PATH = os.path.join(ROOT_PATH, 'data')
+    MODEL_PATH = os.path.join(ROOT_PATH, 'model')
     SVC_PICKLE_FILE = os.path.join(DATA_PATH, 'svc_pickle.p')
     IMAGES_TEST = os.path.join(ROOT_PATH, 'test_images')
     IMAGES_OUTPUT = os.path.join(ROOT_PATH, 'output_images')
