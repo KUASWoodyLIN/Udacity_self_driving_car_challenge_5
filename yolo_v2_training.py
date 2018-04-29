@@ -29,9 +29,9 @@ from keras.utils import plot_model
 import tensorflow as tf
 
 # 專案相關函式庫
-from yolov2.preprocessing import udacity_annotation, BatchGenerator
-from yolov2.utils import WeightReader, decode_netout, draw_boxes, normalize
-from yolov2.utils import draw_bgr_image_boxes, draw_rgb_image_boxes, draw_pil_image_boxes
+from yolov2.preprocessing import parse_annotation, udacity_annotation, BatchGenerator
+from yolov2.utils import WeightReader, decode_netout, draw_boxes
+
 
 ROOT_PATH = os.getcwd()
 DATA_PATH = os.path.join(ROOT_PATH, "data")
@@ -39,15 +39,8 @@ IMAGES_TEST = os.path.join(ROOT_PATH, "test_images")
 # 訓練資料
 UDACITY_DATASET = os.path.join(DATA_PATH, "object-detection-crowdai")
 
-# 圖像類別的Label-encoding
-map_classes = {0: 'Car', 1: 'Truck', 2: 'Pedestrian'}
-
-# 取得所有圖像的圖像類別列表
-labels = list(map_classes.values())
-print(labels)
-
 # Yolov2 參數
-LABELS = labels  # 圖像類別
+LABELS = ['car']
 
 IMAGE_H, IMAGE_W = 416, 416  # 模型輸入的圖像長寬
 GRID_H, GRID_W = 13, 13
@@ -63,7 +56,7 @@ OBJECT_SCALE = 5.0
 COORD_SCALE = 1.0
 CLASS_SCALE = 1.0
 
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 WARM_UP_BATCHES = 0
 TRUE_BOX_BUFFER = 50
 
@@ -230,7 +223,7 @@ def yolov2_model():
     return model
 
 
-def yolov2_load_weight(model):
+def yolov2_load_weight():
     weight_reader = WeightReader(wt_path)  # 初始讀取Darknet預訓練權重檔物件
     weight_reader.reset()
     nb_conv = 23  # 總共有23層的卷積層
@@ -269,7 +262,6 @@ def yolov2_load_weight(model):
             kernel = kernel.transpose([2, 3, 1, 0])
             conv_layer.set_weights([kernel])
             print("handle conv_" + str(i) + " completed")
-    return model
 
 
 def custom_loss(y_true, y_pred):
@@ -290,28 +282,28 @@ def custom_loss(y_true, y_pred):
     """
     Adjust prediction
     """
-    ### adjust x and y
+    # adjust x and y
     pred_box_xy = tf.sigmoid(y_pred[..., :2]) + cell_grid
 
-    ### adjust w and h
+    # adjust w and h
     pred_box_wh = tf.exp(y_pred[..., 2:4]) * np.reshape(ANCHORS, [1, 1, 1, BOX, 2])
 
-    ### adjust confidence
+    # adjust confidence
     pred_box_conf = tf.sigmoid(y_pred[..., 4])
 
-    ### adjust class probabilities
+    # adjust class probabilities
     pred_box_class = y_pred[..., 5:]
 
     """
     Adjust ground truth
     """
-    ### adjust x and y
+    # adjust x and y
     true_box_xy = y_true[..., 0:2]  # relative position to the containing cell
 
-    ### adjust w and h
+    # adjust w and h
     true_box_wh = y_true[..., 2:4]  # number of cells accross, horizontally and vertically
 
-    ### adjust confidence
+    # adjust confidence
     true_wh_half = true_box_wh / 2.
     true_mins = true_box_xy - true_wh_half
     true_maxes = true_box_xy + true_wh_half
@@ -333,16 +325,16 @@ def custom_loss(y_true, y_pred):
 
     true_box_conf = iou_scores * y_true[..., 4]
 
-    ### adjust class probabilities
+    # adjust class probabilities
     true_box_class = tf.argmax(y_true[..., 5:], -1)
 
     """
     Determine the masks
     """
-    ### coordinate mask: simply the position of the ground truth boxes (the predictors)
+    # coordinate mask: simply the position of the ground truth boxes (the predictors)
     coord_mask = tf.expand_dims(y_true[..., 4], axis=-1) * COORD_SCALE
 
-    ### confidence mask: penelize predictors + penalize boxes with low IOU
+    # confidence mask: penelize predictors + penalize boxes with low IOU
     # penalize the confidence of the boxes, which have IOU with some ground truth box < 0.6
     true_xy = true_boxes[..., 0:2]
     true_wh = true_boxes[..., 2:4]
@@ -375,7 +367,7 @@ def custom_loss(y_true, y_pred):
     # penalize the confidence of the boxes, which are reponsible for corresponding ground truth box
     conf_mask = conf_mask + y_true[..., 4] * OBJECT_SCALE
 
-    ### class mask: simply the position of the ground truth boxes (the predictors)
+    # class mask: simply the position of the ground truth boxes (the predictors)
     class_mask = y_true[..., 4] * tf.gather(CLASS_WEIGHTS, true_box_class) * CLASS_SCALE
 
     """
@@ -428,6 +420,7 @@ def custom_loss(y_true, y_pred):
 
     return loss
 
+
 # 產生一個Dummy的標籤輸入
 # 在訓練階段放的是真實的邊界框與圖像類別訊息
 # 但在預測階段還是需要有一個Dummy的輸入, 因為定義在網絡的結構中有兩個輸入：
@@ -436,19 +429,17 @@ def custom_loss(y_true, y_pred):
 dummy_array = np.zeros((1, 1, 1, 1, TRUE_BOX_BUFFER, 4))
 
 
-def testing(img, color_space='bgr'):
-    if color_space == 'rgb':
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-
+def testing(image, color_space='bgr'):
     plt.figure(figsize=(10, 10))
 
     # 進行圖像輸入的前處理
-    input_img = cv2.resize(img, (IMAGE_H, IMAGE_W))  # 修改輸入圖像大小來符合模型的要求
-    input_img = input_img / 255.  # 進行圖像歸一處理
-    input_img = np.expand_dims(input_img, 0)  # 增加 batch dimension
+    input_image = cv2.resize(image, (IMAGE_W, IMAGE_H))
+    input_image = input_image / 255.
+    input_image = input_image[:, :, ::-1]
+    input_image = np.expand_dims(input_image, 0)
 
     # 進行圖像偵測
-    netout = model.predict([input_img, dummy_array])
+    netout = model.predict([input_image, dummy_array])
 
     # 解析網絡的輸出來取得最後偵測出來的邊界框(bounding boxes)列表
     boxes = decode_netout(netout[0],
@@ -465,20 +456,24 @@ def testing(img, color_space='bgr'):
     #       boxes 是偵測的結果
     #       labels 是模型訓練的圖像類別列表
     # 回傳： image 是image的numpy ndarray [h, w, channels(RGB)]
-    img = draw_bgr_image_boxes(img, boxes, labels=LABELS)
-    return img
+    img = draw_boxes(image, boxes, labels=LABELS)
+    return image
+
+
+def normalize(image):
+    return image / 255.
 
 
 if __name__ == "__main__":
     MODE = 'training'
-    # MODE = 'testing'
+    MODE = 'testing'
     if MODE == 'training':
         model = yolov2_model()
         # Step 1.產生網絡拓撲圖
         plot_model(model, to_file='yolov2_graph.png')
 
         # Step 2.載入預訓練的模型權重
-        model = yolov2_load_weight(model)
+        model = yolov2_load_weight()
 
         # Step 3.設定要微調(fine-tune)的模型層級權重
         layer = model.layers[-4]  # 找出最後一層的卷積層
@@ -491,7 +486,7 @@ if __name__ == "__main__":
 
         # TODO: 因為更換dataset, 所以需要更改讀取方式
         # Step 4. 讀取影像和標注檔
-        training_data, seen_train_labels = udacity_annotation(UDACITY_DATASET)
+        training_data, seen_train_labels = udacity_annotation(UDACITY_DATASET, LABELS)
         # 將資料分為 training set 和 validation set
         train_data, valid_data, = train_test_split(training_data, test_size=0.2, shuffle=True)
         # 建立一個訓練用的資料產生器
@@ -515,6 +510,12 @@ if __name__ == "__main__":
                                      mode='min',
                                      period=1)
 
+        tb_counter = len([log for log in os.listdir(os.path.join(os.getcwd(), 'logs/')) if 'coco_' in log]) + 1
+        tensorboard = TensorBoard(log_dir=os.path.join(os.getcwd(), 'logs/') + 'coco_' + '_' + str(tb_counter),
+                                  histogram_freq=0,
+                                  write_graph=True,
+                                  write_images=False)
+
         # Step 6.開始訓練
         optimizer = Adam(lr=0.5e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
         # optimizer = SGD(lr=1e-4, decay=0.0005, momentum=0.9)
@@ -522,14 +523,14 @@ if __name__ == "__main__":
 
         model.compile(loss=custom_loss, optimizer=optimizer)
 
-        history = model.fit_generator(generator=train_batch,
-                                      steps_per_epoch=len(train_batch),
-                                      epochs=100,  # 進行100個訓練循環
-                                      verbose=0,
-                                      validation_data=valid_batch,
-                                      validation_steps=len(valid_batch),
-                                      callbacks=[early_stop, checkpoint],
-                                      max_queue_size=3)
+        model.fit_generator(generator=train_batch,
+                            steps_per_epoch=len(train_batch),
+                            epochs=100,
+                            verbose=1,
+                            validation_data=valid_batch,
+                            validation_steps=len(valid_batch),
+                            callbacks=[early_stop, checkpoint, tensorboard],
+                            max_queue_size=3)
     else:
         model = yolov2_model()
 
@@ -538,16 +539,15 @@ if __name__ == "__main__":
 
         # Step 8.測試
         # 選一張圖像
-        images = glob(IMAGES_TEST + '/*')
-        img_filepath = images[np.random.randint(len(images))]
+        img_files = glob(IMAGES_TEST + '/*')
+        for img_file in img_files:
+            # 使用OpenCV讀入圖像
+            img = cv2.imread(img_file)
 
-        # 使用OpenCV讀入圖像
-        image = cv2.imread(img_filepath)
+            # predict
+            img = testing(img)
 
-        # predict
-        image = testing(image)
-
-        # 把最後的結果秀出來
-        plt.figure(figsize=(10, 10))
-        plt.imshow(image)
+            # 把最後的結果秀出來
+            plt.figure(figsize=(10, 10))
+            plt.imshow(img[:, :, ::-1])
         plt.show()

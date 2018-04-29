@@ -102,7 +102,8 @@ def bbox_iou(box1, box2):
     union = box1.w * box1.h + box2.w * box2.h - intersect
     
     return float(intersect) / union
-    
+
+
 def interval_overlap(interval_a, interval_b):
     x1, x2 = interval_a
     x3, x4 = interval_b
@@ -118,22 +119,26 @@ def interval_overlap(interval_a, interval_b):
         else:
             return min(x2,x4) - x3  
 
-def draw_boxes(image, boxes, labels):    
+
+def draw_boxes(image, boxes, labels):
+    image_h, image_w, _ = image.shape
+
     for box in boxes:
-        xmin  = int((box.x - box.w/2) * image.shape[1])
-        xmax  = int((box.x + box.w/2) * image.shape[1])
-        ymin  = int((box.y - box.h/2) * image.shape[0])
-        ymax  = int((box.y + box.h/2) * image.shape[0])
-        cv2.rectangle(image, (xmin,ymin), (xmax,ymax), (0,255,0), 3)
-        cv2.putText(image, 
-                    #labels[box.get_label()] + ' ' + str(box.get_score()), 
-                    labels[box.get_label()] + ' ' + "{:.2f}".format(box.get_score()), 
-                    (xmin, ymin - 13), 
+        xmin = int(box.xmin * image_w)
+        ymin = int(box.ymin * image_h)
+        xmax = int(box.xmax * image_w)
+        ymax = int(box.ymax * image_h)
+
+        cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 255, 0), 3)
+        cv2.putText(image,
+                    labels[box.get_label()] + ' ' + str(box.get_score()),
+                    (xmin, ymin - 13),
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    1e-3 * image.shape[0], 
-                    #(0,255,0), 2)
-                    rgb_colors[box.get_label()%COLORS_NUM], 2)        
-    return image[:,:,::-1] # 把[height, width, channels(BGR)] 轉換成 [height, width, channels(RGB)]
+                    1e-3 * image_h,
+                    (0, 255, 0), 2)
+
+    return image
+
 
 def draw_bgr_image_boxes(image_bgr, boxes, labels):
     """將偵測出來的邊界框(BoundingBox)在原圖像上展現
