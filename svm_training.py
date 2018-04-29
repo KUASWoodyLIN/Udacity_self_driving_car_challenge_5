@@ -11,10 +11,8 @@ from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-from Udacity_self_driving_car_challenge_5.image_processing.vehicles_detect_model import \
-    custom_extract_features, custom_search_windows
-from Udacity_self_driving_car_challenge_5.image_processing.sliding_window import \
-    slide_window, draw_boxes
+from image_processing.vehicles_detect_model import custom_extract_features, custom_search_windows
+from image_processing.sliding_window import slide_window, draw_boxes
 
 # RGB 0.9673
 # HSV 0.9868
