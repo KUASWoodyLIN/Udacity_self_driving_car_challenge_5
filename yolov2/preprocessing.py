@@ -85,7 +85,7 @@ def parse_annotation(ann_dir, img_dir, labels=[]):
     return all_imgs, seen_labels
 
 
-def udacity_annotation(dir, labels=[]):
+def udacity1_annotation(dir, labels=[]):
     """
     參數:
         dir: 圖像和.csv存放路徑
@@ -115,12 +115,67 @@ def udacity_annotation(dir, labels=[]):
         for row in spamreader:
             if len(labels) > 0 and row['Label'] in labels:
                 if row['Frame'] in files.keys():
-                    files[row['Frame']] += [{'name': row['Label'], 'xmin': int(row['xmax']), 'ymin': int(row['ymax']),
-                                             'xmax': int(row['xmin']), 'ymax': int(row['ymin'])}]
+                    files[row['Frame']] += [{'name': row['Label'], 'xmin': int(row['xmin']), 'ymin': int(row['xmax']),
+                                             'xmax': int(row['ymin']), 'ymax': int(row['ymax'])}]
                 else:
-                    files[row['Frame']] = [{'name': row['Label'], 'xmin': int(row['xmax']), 'ymin': int(row['ymax']),
-                                            'xmax': int(row['xmin']), 'ymax': int(row['ymin'])}]
+                    files[row['Frame']] = [{'name': row['Label'], 'xmin': int(row['xmin']), 'ymin': int(row['xmax']),
+                                            'xmax': int(row['ymin']), 'ymax': int(row['ymax'])}]
                 if row['Label'] in seen_labels.keys():
+                    seen_labels[row['Label']] += 1
+                else:
+                    seen_labels[row['Label']] = 1
+
+    for filename in files.keys():
+        all_imgs.append({'filename': os.path.join(dir, filename),
+                         'width': 1920,
+                         'height': 1200,
+                         'object': files[filename]})
+
+    print("Parsing annotation completed!")
+    print("Total: {} images processed.".format(len(all_imgs)))
+    print("Labels: {}.".format(len(seen_labels)))
+
+    return all_imgs, seen_labels
+
+
+def udacity2_annotation(dir, labels=[]):
+    """
+    參數:
+        dir: 圖像和.csv存放路徑
+        labels: 圖像資料集的物體類別列表
+
+    回傳:
+        all_imgs: 一個列表物件, 每一個物件都包括了要訓練用的重要資訊。例如:
+                    {
+                        'filename': '/tmp/img/img001.jpg',
+                        'width': 128,
+                        'height': 128,
+                        'object':[
+                            {'name':'person',xmin:0, ymin:0, xmax:28, ymax:28},
+                            {'name':'person',xmin:45, ymin:45, xmax:60, ymax:60}
+                        ]
+                    }
+    """
+
+    import csv
+
+    ann_file = os.path.join(dir, 'labels.csv')
+    all_imgs = []
+    files = {}
+    seen_labels = {}
+    with open(ann_file, newline='') as csvfile:
+        spamreader = csv.reader(csvfile)
+        for row in spamreader:
+            data = row.split()
+            label = data[-1].split('"')
+            if len(labels) > 0 and label in labels:
+                if data[0] in files.keys():
+                    files[data[0]] += [{'name': label, 'xmin': int(data[1]), 'ymin': int(data[2]),
+                                        'xmax': int(data[3]), 'ymax': int(data[4])}]
+                else:
+                    files[data[0]] = [{'name': label, 'xmin': int(data[1]), 'ymin': int(data[2]),
+                                       'xmax': int(data[3]), 'ymax': int(data[4])}]
+                if label in seen_labels.keys():
                     seen_labels[row['Label']] += 1
                 else:
                     seen_labels[row['Label']] = 1
@@ -393,3 +448,52 @@ class BatchGenerator(Sequence):
                 obj['xmax'] = self.config['IMAGE_W'] - xmin
 
         return image, all_objs
+
+
+class bbox(object):
+    def __init__(self, label, xmin, xmax, ymin, ymax):
+        self.xmin = xmin / 1920
+        self.xmax = xmax / 1920
+        self.ymin = ymin / 1200
+        self.ymax = ymax / 1200
+        self.label = label
+        self.score = 1
+
+    def get_label(self):
+        return self.label
+
+    def get_score(self):
+        return self.score
+
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    from yolov2.utils import draw_boxes, draw_bgr_image_boxes
+
+    ROOT_PATH = os.path.expanduser('~/')
+    DATA_PATH = os.path.join(ROOT_PATH, 'dataset')
+    UDACITY_DATA1 = os.path.join(DATA_PATH, 'object-detection-crowdai')
+    UDACITY_DATA2 = os.path.join(DATA_PATH, 'object-dataset')
+
+
+    print(UDACITY_DATA1)
+
+    labels = ['Car']
+    # labels = ['car']
+    all_imgs, seen = udacity1_annotation(UDACITY_DATA1, labels)
+
+    print(all_imgs[0])
+    test_file = all_imgs[0]
+    img = cv2.imread(test_file['filename'])
+    objects = test_file['object']
+    bboxs = []
+    for obj in objects:
+        bboxs.append(bbox(obj['name'], obj['xmin'], obj['xmax'], obj['ymin'], obj['ymax']))
+
+    draw_boxes(img, bboxs, 'Car')
+
+
+    plt.imshow(img)
+    plt.show()
+
+

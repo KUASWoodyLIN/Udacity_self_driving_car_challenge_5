@@ -29,7 +29,7 @@ from keras.utils import plot_model
 import tensorflow as tf
 
 # 專案相關函式庫
-from yolov2.preprocessing import parse_annotation, udacity_annotation, BatchGenerator
+from yolov2.preprocessing import parse_annotation, udacity1_annotation, BatchGenerator
 from yolov2.utils import WeightReader, decode_netout, draw_boxes
 
 
@@ -486,7 +486,7 @@ if __name__ == "__main__":
 
         # TODO: 因為更換dataset, 所以需要更改讀取方式
         # Step 4. 讀取影像和標注檔
-        training_data, seen_train_labels = udacity_annotation(UDACITY_DATASET, LABELS)
+        training_data, seen_train_labels = udacity1_annotation(UDACITY_DATASET, LABELS)
         # 將資料分為 training set 和 validation set
         train_data, valid_data, = train_test_split(training_data, test_size=0.2, shuffle=True)
         # 建立一個訓練用的資料產生器
