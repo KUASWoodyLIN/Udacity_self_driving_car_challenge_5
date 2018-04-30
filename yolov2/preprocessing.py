@@ -472,8 +472,8 @@ if __name__ == "__main__":
 
     ROOT_PATH = os.path.expanduser('~/')
     DATA_PATH = os.path.join(ROOT_PATH, 'dataset')
-    UDACITY_DATA1 = os.path.join(DATA_PATH, 'object-detection-crowdai')
-    UDACITY_DATA2 = os.path.join(DATA_PATH, 'object-dataset')
+    UDACITY_DATA1 = os.path.join(DATA_PATH, 'Udacity_data/object-detection-crowdai')
+    UDACITY_DATA2 = os.path.join(DATA_PATH, 'Udacity_data/object-dataset')
 
 
     print(UDACITY_DATA1)
@@ -482,17 +482,16 @@ if __name__ == "__main__":
     # labels = ['car']
     all_imgs, seen = udacity1_annotation(UDACITY_DATA1, labels)
 
-    print(all_imgs[0])
     test_file = all_imgs[0]
     img = cv2.imread(test_file['filename'])
     objects = test_file['object']
     bboxs = []
     for obj in objects:
-        bboxs.append(bbox(obj['name'], obj['xmin'], obj['xmax'], obj['ymin'], obj['ymax']))
+        bboxs.append(bbox(0, obj['xmin'], obj['xmax'], obj['ymin'], obj['ymax']))
 
     draw_boxes(img, bboxs, 'Car')
 
-
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     plt.imshow(img)
     plt.show()
 
