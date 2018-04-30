@@ -294,7 +294,7 @@ def detection_v2(img, hot_windows, save=False):
 
 下面影片為作業4與作業5的結合，雖然在test image上表現不錯，但是到project video就出現許多錯誤。
 
-**請點擊影片**
+**[請點擊影片](https://www.youtube.com/watch?v=OOZuwVXmd9Q)**
 
 [![project_video_svm.avi](https://img.youtube.com/vi/OOZuwVXmd9Q/0.jpg)](https://www.youtube.com/watch?v=OOZuwVXmd9Q)
 
@@ -313,7 +313,7 @@ def detection_v2(img, hot_windows, save=False):
 
 ## Combine Lane Finding and Yolo v2 Vehicles Detection
 
-**請點擊影片**
+**[請點擊影片](https://www.youtube.com/watch?v=NPvie3dHVb0)**
 
 [![project_video_yolov2.avi](https://img.youtube.com/vi/NPvie3dHVb0/0.jpg)](https://www.youtube.com/watch?v=NPvie3dHVb0)
 
