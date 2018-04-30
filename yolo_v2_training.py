@@ -33,15 +33,6 @@ from yolov2.preprocessing import parse_annotation, udacity1_annotation, BatchGen
 from yolov2.utils import WeightReader, decode_netout, draw_boxes
 
 
-ROOT_PATH = os.getcwd()
-
-DATA_PATH = '/home/share/dataset'
-CAR_DATASET = os.path.join(DATA_PATH, "car")
-COCO_DATASET = os.path.join(DATA_PATH, "coco")
-IMAGES_TEST = os.path.join(ROOT_PATH, "test_images")
-# 訓練資料
-UDACITY_DATASET1 = os.path.join(CAR_DATASET, "object-detection-crowdai")
-UDACITY_DATASET2 = os.path.join(CAR_DATASET, "object-dataset")
 # Yolov2 參數
 LABELS = ['Car']
 
@@ -432,9 +423,7 @@ def custom_loss(y_true, y_pred):
 dummy_array = np.zeros((1, 1, 1, 1, TRUE_BOX_BUFFER, 4))
 
 
-def testing(image, color_space='bgr'):
-    plt.figure(figsize=(10, 10))
-
+def testing_yolov2(image):
     # 進行圖像輸入的前處理
     input_image = cv2.resize(image, (IMAGE_W, IMAGE_H))
     input_image = input_image / 255.
@@ -468,8 +457,17 @@ def normalize(image):
 
 
 if __name__ == "__main__":
+    ROOT_PATH = os.getcwd()
+    DATA_PATH = '/home/share/dataset'
+    CAR_DATASET = os.path.join(DATA_PATH, "car")
+    COCO_DATASET = os.path.join(DATA_PATH, "coco")
+    IMAGES_TEST = os.path.join(ROOT_PATH, "test_images")
+    # 訓練資料
+    UDACITY_DATASET1 = os.path.join(CAR_DATASET, "object-detection-crowdai")
+    UDACITY_DATASET2 = os.path.join(CAR_DATASET, "object-dataset")
+
     MODE = 'training'
-    # MODE = 'testing'
+    MODE = 'testing'
     if MODE == 'training':
         model = yolov2_model()
         # Step 1.產生網絡拓撲圖
@@ -490,7 +488,7 @@ if __name__ == "__main__":
         # TODO: 因為更換dataset, 所以需要更改讀取方式
         # Step 4. 讀取影像和標注檔
 
-        car_data1, seen_car_labels1 = udacity_annotation1(UDACITY_DATASET1, LABELS)
+        car_data1, seen_car_labels1 = udacity1_annotation(UDACITY_DATASET1, LABELS)
         # car_data2, seen_car_labels2 = udacity_annotation(UDACITY_DATASET2, LABELS)
 
         # training_data = np.concatenate(car_data1, car_data2)
@@ -552,9 +550,11 @@ if __name__ == "__main__":
             img = cv2.imread(img_file)
 
             # predict
-            img = testing(img)
-
+            img = testing_yolov2(img)
             # 把最後的結果秀出來
             plt.figure(figsize=(10, 10))
             plt.imshow(img[:, :, ::-1])
         plt.show()
+else:
+    model = yolov2_model()
+    model.load_weights("weights_car.h5")

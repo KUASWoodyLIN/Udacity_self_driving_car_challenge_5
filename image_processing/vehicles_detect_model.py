@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from Udacity_self_driving_car_challenge_5.image_processing.features_extract import bin_spatial, color_hist, get_hog_features
+from image_processing.features_extract import bin_spatial, color_hist, get_hog_features
 
 
 def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),

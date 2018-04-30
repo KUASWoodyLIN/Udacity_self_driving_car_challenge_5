@@ -7,8 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage.measurements import label
 
-from Udacity_self_driving_car_challenge_5.svm_training import testing
-from Udacity_self_driving_car_challenge_5.image_processing.sliding_window import draw_boxes
+from svm_training import testing_svm
+from image_processing.sliding_window import draw_boxes
 
 
 def add_heat(heatmap, bbox_list):
@@ -174,8 +174,8 @@ def test_image():
 
     img = cv2.imread(image_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    hot_windows = testing(img, svc, x_scaler, spatial_size=spatial_size, hist_bins=hist_bins,
-                          orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, vis=False)
+    hot_windows = testing_svm(img, svc, x_scaler, spatial_size=spatial_size, hist_bins=hist_bins,
+                              orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, vis=False)
     # window_img = draw_boxes(img, hot_windows, color=(0, 0, 255), thick=6)
 
     img1 = np.copy(img)
@@ -207,8 +207,8 @@ def test_images():
     for index, path in enumerate(images_path):
         img = cv2.imread(path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        hot_windows = testing(img, svc, x_scaler, spatial_size=spatial_size, hist_bins=hist_bins,
-                              orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, vis=False)
+        hot_windows = testing_svm(img, svc, x_scaler, spatial_size=spatial_size, hist_bins=hist_bins,
+                                  orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, vis=False)
         img1 = np.copy(img)
         img_out1 = detection_v1(img1, hot_windows)
         img2 = np.copy(img)

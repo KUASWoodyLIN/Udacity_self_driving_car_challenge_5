@@ -80,10 +80,10 @@ def training(X_train, X_test, y_train, y_test):
 
 
 # ------------------------ SVM 測試 ----------------------- #
-def testing(image, svc, X_scaler, y_start_stop=[400, 656],
-            spatial_size=(32, 32), hist_bins=32,
-            orient=9, pix_per_cell=8, cell_per_block=2,
-            spatial_feat=True, hist_feat=True, hog_feat=True, vis=True):
+def testing_svm(image, svc, X_scaler, y_start_stop=[400, 656],
+                spatial_size=(32, 32), hist_bins=32,
+                orient=9, pix_per_cell=8, cell_per_block=2,
+                spatial_feat=True, hist_feat=True, hog_feat=True, vis=True):
     draw_image = np.copy(image)
     windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop,
                            xy_window=(64, 64), xy_overlap=(0.5, 0.5))
@@ -171,10 +171,10 @@ if __name__ == "__main__":
         # testing
         img = cv2.imread('./test_images/test1.jpg')
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        out_img1 = testing(img, svc, x_scaler, y_start_stop,
-                           spatial_size, hist_bins,
-                           orient, pix_per_cell, cell_per_block,
-                           spatial_feat, hist_feat, hist_feat)
+        out_img1 = testing_svm(img, svc, x_scaler, y_start_stop,
+                               spatial_size, hist_bins,
+                               orient, pix_per_cell, cell_per_block,
+                               spatial_feat, hist_feat, hist_feat)
         plt.figure()
         plt.title('out_img1')
         plt.imshow(out_img1)
@@ -229,10 +229,10 @@ if __name__ == "__main__":
         for index, path in enumerate(images_path, 1):
             img = cv2.imread(path)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            out_img = testing(img, svc, x_scaler, y_start_stop,
-                              spatial_size, hist_bins,
-                              orient, pix_per_cell, cell_per_block,
-                              spatial_feat, hist_feat, hog_feat)
+            out_img = testing_svm(img, svc, x_scaler, y_start_stop,
+                                  spatial_size, hist_bins,
+                                  orient, pix_per_cell, cell_per_block,
+                                  spatial_feat, hist_feat, hog_feat)
 
             # Image Show
             plt.subplot(3, 2, index)

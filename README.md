@@ -1,14 +1,41 @@
 # Vehicles Detection
 
+### Install
+
+**主程式下載**
+
+```shell
+git clone https://github.com/KUASWoodyLIN/Udacity_self_driving_car_challenge_5.git
+```
+
+**如果要測試請下載Yolo Vehicles Detection權重**
+```shell
+https://drive.google.com/file/d/1O1DC4hXvTf_SCsRfH554OQsYnfEOjywS/view?usp=sharing
+```
+
+**如果要重新訓練請下載Data 和 Yolo pre trained model**
+
+- Dataset下載手冊 ：[Download.md](./data/download.md) 
+
+- YOLOv2 608x608：[weights](https://pjreddie.com/media/files/yolov2.weights)
+
+  ​
+
+
 ### 專案路徑布局
 
 ```
-├── Advanced_Lane_Lines.py
+├── main.py							# **主程式**
+├── svm_training.py					# SVM 訓練程式
+├── yolo_v2_training.py				# Yolo v2 訓練程式
+├── weights_car.h5					# Yolo vehicles model weights
 ├── project_video.mp4				# Project 影像
-├── challenge_video.mp4				# 挑戰 1) 影像
-├── harder_challenge_video.mp4		# 挑戰 2) 影像
 ├── __init__.py	
 ├── LICENSE
+├── yolov2							# yolo_v2 所使用的function都在這個資料夾底下
+│   ├── preprocessing.py			# Project 5 讀取影像和標注function和BatchGenerator
+│   ├── utils.py					# Project 5 運算函式BoundBox、iou、sigmod、softmax等
+│   └── __init__.py	
 ├── image_processing				# 所有pipline中使用到的function都在此資料夾底下
 │   ├── camera_cal					# Project 4 校正相機使用的影像
 │   │   └── .....					
@@ -20,7 +47,9 @@
 │   ├── line_fit_fix.py				# Project 4 檢測找車道function是否有正確找出車道
 │   ├── preprocessing.py			# Project 4 影像遮罩，將不重要地方遮罩掉
 │   ├── features_extract.py			# Project 5 特徵擷取,ex:HOG, color hist, bin spatial
-│   ├── vehicles_detect_model.py	# Project 5 主要function,ex:slide window, draw_boxes
+│   ├── sliding_window.py			# Project 5 滑動視窗、draw boxes
+│   ├── vehicles_detect_model.py	# Project 5 擷取特徵pipline, search_window 等
+│   ├── multiple_detections.py		# Project 5 heatmap、mask、detection pipline
 │   └── __init__.py	
 ├── examples						# 執行結果範例
 │   └── .....
@@ -29,8 +58,8 @@
 ├── output_images					# 測試影片輸出資料夾
 │   └── .....
 ├── output_video					# 測試影像輸出資料夾
-│   ├── project_video_long_line.avi		# 使用較長的道路檢測
-│   └── project_video_short_line.avi	# 使用較短的道路建測
+│   ├── project_video_svm.avi		# 使用較長的道路檢測
+│   └── project_video_yolov2.avi	# 使用較短的道路建測
 └── README.md
 ```
 
@@ -253,17 +282,52 @@ def detection_v2(img, hot_windows, save=False):
 
 #### Vehicles detection Improve Summary
 
+比較了改進前與改進後的差別。
+
 ![Vehicles detection all](./output_images/Vehicles_detectionv2.png)
 
 
 
 ---
 
-## Combine Lane Finding and Vehicles Detection
+## Combine Lane Finding and SVM Vehicles Detection
 
-更改參數
+下面影片為作業4與作業5的結合，雖然在test image上表現不錯，但是到project video就出現許多錯誤。
 
-```python
+**請點擊影片**
 
-```
+[![project_video_svm.avi](https://img.youtube.com/vi/OOZuwVXmd9Q/0.jpg)](https://www.youtube.com/watch?v=OOZuwVXmd9Q)
+
+
+
+## YOLO: Real-Time Object Detection
+
+為了改進車輛偵測的performance我改用非常知名的物件偵測模型YOLO V2。由於YOLO作者並非使用Tensorflow或keras實現，所以我找了Github上有人將YOLO v2實現到keras上的[專案](https://github.com/experiencor/keras-yolo2)，非常感謝作者的貢獻，如果每有這項專案我可能需要花費幾個月的時間來實現出來！
+
+訓練Dataset : [Udacity car dataset 1](https://github.com/udacity/self-driving-car/tree/master/annotations)
+
+
+運行結果：
+
+![yolo_v2_output](./output_images/test4_yolov2.png)
+
+## Combine Lane Finding and Yolo v2 Vehicles Detection
+
+**請點擊影片**
+
+[![project_video_yolov2.avi](https://img.youtube.com/vi/NPvie3dHVb0/0.jpg)](https://www.youtube.com/watch?v=NPvie3dHVb0)
+
+
+
+## 總結
+
+1.  SVM 方法運到的困難點
+   - HOG 特徵擷取時我花了許多時間想怎樣擷取的特徵是有意義的，並去比對每個色彩空間轉換出來的圖像，然後以車子的車燈和車型為目標，找出最突顯這個兩特徵的色彩空間。
+   - bin_spatial 和  color_hist的特徵擷取就沒花太多時間，使用**HLS色彩空間**，而不使用RGB的原因是以灰階分別表示R、G、B顯示出來發現這三個色域並沒有太大差別。
+   - 最後雖然在test_image上可以很好的框出汽車位子來，但是在project video就出現急大的失誤，雖然做了很多參數的調整還是達不到標準，所以之後我改用Deep learning的方法。
+2.  YOLO v2 方法
+   - 這裡不選擇RNN, Fast-RNN, Faster-RNN是因為我想要一個**即時**的object detection model，而Yolo v2是最符合我的要求的。
+   - **Udacity Dataset labels.csv 問題**，本專案使用的YOLO v2 model 是始用原作的提供的weights，然後對最後一層conv layer 做fine tune，但是這花了我快1星期的時間完成，主要是因為dataset大訓練時間長，而且labels.csv的第一行id **是錯誤的**，這花費我6天的時間早出這個問題並修正。
+   - 須改進1 YOLO v2 對小物件的偵測不是很好，導致叫遠的汽車無法感知，或是真實情況下如果出現小動物(兔子、烏龜等等)，有機會發生意外，而我們可以去最這方面進行修改，加強網路架構。
+   - 須改進2 現在Yolo v2 團隊已經推出第三版，整個網路的速度又性能都有提升，是值得去嘗試的。
 

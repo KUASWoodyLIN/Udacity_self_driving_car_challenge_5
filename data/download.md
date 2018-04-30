@@ -1,5 +1,7 @@
 # Please Download vehicles and non-vehicles dataset
 
+**訓練SVM使用**
+
 [vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/vehicles.zip) 和 [non-vehicle](https://s3.amazonaws.com/udacity-sdc/Vehicle_Tracking/non-vehicles.zip) 的 64x64 影像都是由 [GTI vehicle image database](http://www.gti.ssr.upm.es/data/Vehicle_database.html) 和 [KITTI vision benchmark suite ](http://www.cvlibs.net/datasets/kitti/) 這兩個dataset影片中擷取出來的。
 
 ```shell
@@ -14,10 +16,14 @@ rm vehicles.zip non-vehicles.zip
 ```
 
 如果要增加訓練資料可以由Udacity最新的資料集中下載更多影像。
-Link: [Udacity labeled dataset](https://github.com/udacity/self-driving-car/tree/master/annotations) 
+
 
 
 # Udacity Dataset
+
+**訓練 YOLO v2 使用 (以片中呈現的結果只使用Dataset 1訓練)**
+
+Link: [Udacity labeled dataset](https://github.com/udacity/self-driving-car/tree/master/annotations) 
 
 ### Dataset 1
 
@@ -39,6 +45,12 @@ tar zxvf object-dataset.tar.gz
 
 
 # COCO Dataset
+
+**訓練 YOLO v2 使用 (還未測試過)**
+
+下載COCO Dataset 並將 annotations 轉成pascal形式
+
+Link:  [COCO dataset](http://cocodataset.org/#home)
 
 1. Install COCO Dataset
 
@@ -187,3 +199,4 @@ tar zxvf object-dataset.tar.gz
    ```
 
    ​
+
