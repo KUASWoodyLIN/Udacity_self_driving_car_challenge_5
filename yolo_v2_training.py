@@ -34,13 +34,16 @@ from yolov2.utils import WeightReader, decode_netout, draw_boxes
 
 
 ROOT_PATH = os.getcwd()
-DATA_PATH = os.path.join(ROOT_PATH, "data")
+
+DATA_PATH = '/home/share/dataset'
+CAR_DATASET = os.path.join(DATA_PATH, "car")
+COCO_DATASET = os.path.join(DATA_PATH, "coco")
 IMAGES_TEST = os.path.join(ROOT_PATH, "test_images")
 # 訓練資料
-UDACITY_DATASET = os.path.join(DATA_PATH, "object-detection-crowdai")
-
+UDACITY_DATASET1 = os.path.join(CAR_DATASET, "object-detection-crowdai")
+UDACITY_DATASET2 = os.path.join(CAR_DATASET, "object-dataset")
 # Yolov2 參數
-LABELS = ['car']
+LABELS = ['Car']
 
 IMAGE_H, IMAGE_W = 416, 416  # 模型輸入的圖像長寬
 GRID_H, GRID_W = 13, 13
@@ -56,7 +59,7 @@ OBJECT_SCALE = 5.0
 COORD_SCALE = 1.0
 CLASS_SCALE = 1.0
 
-BATCH_SIZE = 32
+BATCH_SIZE = 20
 WARM_UP_BATCHES = 0
 TRUE_BOX_BUFFER = 50
 
@@ -75,7 +78,7 @@ generator_config = {
 }
 
 # Darknet預訓練權重檔與訓練/驗證資料目錄
-wt_path = 'yolo.weights'
+wt_path = 'yolov2.weights'
 
 
 def space_to_depth_x2(x):
@@ -409,14 +412,14 @@ def custom_loss(y_true, y_pred):
     current_recall = nb_pred_box / (nb_true_box + 1e-6)
     total_recall = tf.assign_add(total_recall, current_recall)
 
-    loss = tf.Print(loss, [tf.zeros((1))], message='Dummy Line \t', summarize=1000)
-    loss = tf.Print(loss, [loss_xy], message='Loss XY \t', summarize=1000)
-    loss = tf.Print(loss, [loss_wh], message='Loss WH \t', summarize=1000)
-    loss = tf.Print(loss, [loss_conf], message='Loss Conf \t', summarize=1000)
-    loss = tf.Print(loss, [loss_class], message='Loss Class \t', summarize=1000)
-    loss = tf.Print(loss, [loss], message='Total Loss \t', summarize=1000)
-    loss = tf.Print(loss, [current_recall], message='Current Recall \t', summarize=1000)
-    loss = tf.Print(loss, [total_recall / seen], message='Average Recall \t', summarize=1000)
+    # loss = tf.Print(loss, [tf.zeros((1))], message='Dummy Line \t', summarize=1000)
+    # loss = tf.Print(loss, [loss_xy], message='Loss XY \t', summarize=1000)
+    # loss = tf.Print(loss, [loss_wh], message='Loss WH \t', summarize=1000)
+    # loss = tf.Print(loss, [loss_conf], message='Loss Conf \t', summarize=1000)
+    # loss = tf.Print(loss, [loss_class], message='Loss Class \t', summarize=1000)
+    # loss = tf.Print(loss, [loss], message='Total Loss \t', summarize=1000)
+    # loss = tf.Print(loss, [current_recall], message='Current Recall \t', summarize=1000)
+    # loss = tf.Print(loss, [total_recall / seen], message='Average Recall \t', summarize=1000)
 
     return loss
 
@@ -466,14 +469,14 @@ def normalize(image):
 
 if __name__ == "__main__":
     MODE = 'training'
-    MODE = 'testing'
+    # MODE = 'testing'
     if MODE == 'training':
         model = yolov2_model()
         # Step 1.產生網絡拓撲圖
         plot_model(model, to_file='yolov2_graph.png')
 
         # Step 2.載入預訓練的模型權重
-        model = yolov2_load_weight()
+        yolov2_load_weight()
 
         # Step 3.設定要微調(fine-tune)的模型層級權重
         layer = model.layers[-4]  # 找出最後一層的卷積層
@@ -486,9 +489,12 @@ if __name__ == "__main__":
 
         # TODO: 因為更換dataset, 所以需要更改讀取方式
         # Step 4. 讀取影像和標注檔
-        training_data, seen_train_labels = udacity_annotation(UDACITY_DATASET, LABELS)
+        car_data1, seen_car_labels1 = udacity_annotation(UDACITY_DATASET1, LABELS)
+        # car_data2, seen_car_labels2 = udacity_annotation(UDACITY_DATASET2, LABELS)
+
+        # training_data = np.concatenate(car_data1, car_data2)
         # 將資料分為 training set 和 validation set
-        train_data, valid_data, = train_test_split(training_data, test_size=0.2, shuffle=True)
+        train_data, valid_data, = train_test_split(car_data1, test_size=0.2, shuffle=True)
         # 建立一個訓練用的資料產生器
         train_batch = BatchGenerator(train_data, generator_config, norm=normalize)
         # 建立一個驗證用的資料產生器
