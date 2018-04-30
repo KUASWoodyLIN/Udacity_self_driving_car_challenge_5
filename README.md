@@ -215,7 +215,7 @@ heatmap = apply_threshold(heatmap, 2)
 
 ---
 
-###5. Labels bboxes
+### 5. Labels bboxes
 
 這裡我們始用scupy image processing包，將上求到的熱點圖分類，結果如下圖所示。
 
@@ -300,6 +300,8 @@ def detection_v2(img, hot_windows, save=False):
 
 
 
+---
+
 ## YOLO: Real-Time Object Detection
 
 為了改進車輛偵測的performance我改用非常知名的物件偵測模型YOLO V2。由於YOLO作者並非使用Tensorflow或keras實現，所以我找了Github上有人將YOLO v2實現到keras上的[專案](https://github.com/experiencor/keras-yolo2)，非常感謝作者的貢獻，如果每有這項專案我可能需要花費幾個月的時間來實現出來！
@@ -311,6 +313,10 @@ def detection_v2(img, hot_windows, save=False):
 
 ![yolo_v2_output](./output_images/test4_yolov2.png)
 
+
+
+---
+
 ## Combine Lane Finding and Yolo v2 Vehicles Detection
 
 **[請點擊影片](https://www.youtube.com/watch?v=NPvie3dHVb0)**
@@ -318,6 +324,8 @@ def detection_v2(img, hot_windows, save=False):
 [![project_video_yolov2.avi](https://img.youtube.com/vi/NPvie3dHVb0/0.jpg)](https://www.youtube.com/watch?v=NPvie3dHVb0)
 
 
+
+---
 
 ## 總結
 
