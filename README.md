@@ -339,3 +339,43 @@ def detection_v2(img, hot_windows, save=False):
    - 須改進1 YOLO v2 對小物件的偵測不是很好，導致叫遠的汽車無法感知，或是真實情況下如果出現小動物(兔子、烏龜等等)，有機會發生意外，而我們可以去最這方面進行修改，加強網路架構。
    - 須改進2 現在Yolo v2 團隊已經推出第三版，整個網路的速度又性能都有提升，是值得去嘗試的。
 
+
+
+
+---
+
+### TODO
+
+1. 先對整張圖做特徵擷取(HOG, bin_spatial, color_hist)，而不是每個sliding window 做一次，
+   這樣可以增加許多效能。
+
+2. [GridSearchCV()](http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV) 和 [RandomizedSearchCV()](http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html#sklearn.model_selection.RandomizedSearchCV)這兩個參數可以嘗試。
+
+3. **Hard negative mining**
+
+  - 方法一：減少window search 在發生錯誤的地方。
+
+
+  - 方法二：將輸出的錯誤影像存入Dataset中，在下一次訓練時改進模型。
+
+  - 方法三：Data augmentation 增加數據量，像Flipping翻轉可以增加一倍的數據量。
+
+  - 方法四：SVM嘗試使用`rbf`kernel 。
+
+  - 方法五：將鄰近的6 frame heat map 合併，然後就可以將threshold 設定成較大的閥值(4-6)。
+
+    ```python
+    from collections import deque
+    multi_frame_boxes = deque(maxlen=6)
+    ...
+    heat = np.zeros_like(img[:, :, 0]).astype(np.float)
+    multi_frame_boxes.append(boxes)
+    heat = add_heat(heat, [bbox for bboxes in multi_frame_boxes for bbox in bboxes])
+    thresholded_heat = apply_threshold(heat, 4)
+    heatmap = np.clip(heat, 0, 255)
+    labels = label(heatmap)
+    draw_img = draw_labeled_bboxes(np.copy(img), labels)
+    ```
+
+    ​
+
